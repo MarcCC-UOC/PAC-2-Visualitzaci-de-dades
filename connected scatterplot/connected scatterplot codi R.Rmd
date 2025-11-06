@@ -48,7 +48,7 @@ tempMinComarca <- tempMinComarca %>%
   select(mes,tempMin)
 
 
-pluvComarca$precipitacio <- as.numeric(tempMinComarca$tempMin)
+pluvComarca$precipitacio <- as.numeric(pluvComarca$precipitacio)
 tempMinComarca$tempMin <- as.numeric(tempMinComarca$tempMin)
 tempMaxComarca$tempMax <- as.numeric(tempMaxComarca$tempMax)
 
