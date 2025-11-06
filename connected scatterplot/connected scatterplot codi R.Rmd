@@ -1,0 +1,73 @@
+---
+title: "connected scatter plot"
+author: "Marc Clemente Coral"
+date: "2025-11-06"
+output: html_document
+---
+
+
+```{r}
+library(dplyr)
+library(ggplot2)
+
+comarca <- "Noguera"
+pluv <- read.csv("pluv.csv")
+tempMax <- read.csv("tempMax.csv")
+tempMin <- read.csv("tempMin.csv")
+mesos <- c("Enero","Febrero","Marzo","Abril","Mayo","Junio",
+           "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre")
+
+
+#pluja mensual
+pluvComarca <- pluv %>%
+  filter(row == comarca, col %in% mesos) %>%
+  select(col, value)%>%
+  rename(mes = col,
+         precipitacio = value)
+
+
+#temperatura màxima mensual
+tempMaxComarca <- tempMax %>%
+  filter(row == comarca) %>%
+  rename(mes = col,
+         tempMax = value)
+tempMaxComarca$mes <- gsub("Media mensual / ", "", tempMaxComarca$mes)
+tempMaxComarca <- tempMaxComarca %>%
+  filter (mes %in% mesos)%>%
+  select(mes,tempMax)
+
+
+#temperatura minima mensual
+tempMinComarca <- tempMin %>%
+  filter(row == comarca) %>%
+  rename(mes = col,
+         tempMin = value)
+tempMinComarca$mes <- gsub("Media mensual / ", "", tempMinComarca$mes)
+tempMinComarca <- tempMinComarca %>%
+  filter (mes %in% mesos)%>%
+  select(mes,tempMin)
+
+
+pluvComarca$precipitacio <- as.numeric(tempMinComarca$tempMin)
+tempMinComarca$tempMin <- as.numeric(tempMinComarca$tempMin)
+tempMaxComarca$tempMax <- as.numeric(tempMaxComarca$tempMax)
+
+dadesComarca <- pluvComarca %>%
+  inner_join(tempMinComarca, by = "mes") %>%
+  inner_join(tempMaxComarca, by = "mes") %>%
+  mutate(tempMitjana = (tempMax+tempMin)/2 ) %>%
+  select(mes, precipitacio, tempMitjana)
+
+
+#connected scatterplot
+ggplot(dadesComarca, aes(x = tempMitjana, y = precipitacio)) +
+  geom_path(color = "steelblue", size = 1, arrow = arrow(type = "open", length = unit(0.15, "inches"))) +
+  geom_point(size = 3, color = "darkred") +
+  geom_text(aes(label = mes), vjust = -1, size = 3) +
+  theme_minimal() +
+  labs(
+    title = "Connected Scatter Plot: Temperatura i Precipitació a la Noguera, 2024",
+    x = "Temperatura mitjana (°C)",
+    y = "Precipitació (mm)"
+  )
+```

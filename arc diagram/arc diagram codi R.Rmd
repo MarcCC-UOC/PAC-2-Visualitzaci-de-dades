@@ -1,0 +1,48 @@
+---
+title: "arc diagram"
+author: "Marc Clemente Coral"
+date: "2025-11-05"
+output: html_document
+---
+
+
+```{r}
+library(tidyverse)
+library(igraph)
+library(ggraph)
+
+#llegir rutes de vol entre aeroports
+rutes <- read_csv("routes.dat.txt", 
+                   col_names = c("Airline","Airline_ID","Source_airport","Source_airport_ID",
+                                 "Destination_airport","Destination_airport_ID","Codeshare",
+                                 "Stops","Equipment"),
+                   na = c("", "\\N"))
+
+#agafar unes quantes
+subconjuntRutes <- rutes %>%
+  select(Source_airport, Destination_airport) %>%
+  filter(!is.na(Source_airport) & !is.na(Destination_airport)) %>%
+  slice_head(n = 100)
+
+#graph
+g <- graph_from_data_frame(subconjuntRutes, directed = FALSE)
+
+#fer el arc diagram
+ggraph(g, layout = 'linear') +
+  geom_edge_arc(alpha = 0.5, color = "steelblue") +
+  geom_node_point(size = 3, color = "darkred") +
+  geom_node_text(
+    aes(label = name),
+    angle = 90,
+    vjust = 0.5,
+    hjust = 1,
+    size = 3,
+    nudge_y = -0.15
+  ) +
+  theme_void() +
+  labs(title = "Arc Diagram: rutes entre aeroports")+
+  coord_cartesian(clip = "off") +
+  theme(plot.margin = margin(10, 50, 50, 50))
+
+
+```

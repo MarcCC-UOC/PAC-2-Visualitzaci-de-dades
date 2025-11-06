@@ -1,0 +1,45 @@
+---
+title: "cartogram"
+author: "Marc Clemente Coral"
+date: "2025-11-05"
+output: html_document
+---
+
+
+
+```{r}
+library(sf)
+library(cartogram)
+library(dplyr)
+library(ggplot2)
+library(readr)
+
+poblacio <- read.csv("csvpoblacio.csv")
+poblacio <- poblacio[,-1]
+  
+comarques <- st_read("divisions-administratives.gpkg", layer = "_53_comarques-100000")
+names(comarques)
+comarques_join <- comarques %>%
+  left_join(poblacio, by = c("NOMCOMAR" = "comarca"))
+
+comarques_join <- st_transform(comarques_join, 25831) # ETRS89 / UTM zone 31N
+
+comarques_join <- st_make_valid(comarques_join)
+comarques_join <- st_buffer(comarques_join, 0)
+
+carto_comarques <- cartogram_cont(comarques_join, "població", itermax = 5)
+
+
+ggplot(carto_comarques) +
+  geom_sf(aes(fill = població), color = "white", linewidth = 0.2) +
+  scale_fill_viridis_c(
+    option = "plasma",
+    trans = "log",
+    labels = scales::label_number(big.mark = ".", decimal.mark = ",", accuracy = 1),
+    breaks = c(20000, 160000, 1200000)
+  ) +
+  labs(
+    title = "Cartograma de la població per comarca de Catalunya"
+  ) +
+  theme_minimal()
+```
